@@ -1,0 +1,1700 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ПромЭкспорт CRM — Демо</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8f9fb;--bg-card:#fff;--bg-hover:#f4f5f7;--bg-sidebar:#1a1d23;
+  --border:#e5e7eb;--accent:#4f46e5;--accent-hover:#4338ca;
+  --text-primary:#111827;--text-secondary:#374151;--text-muted:#6b7280;--text-sidebar:#9ca3af;
+  --radius:10px;--shadow:0 1px 4px rgba(0,0,0,.08);
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;display:flex}
+
+/* ── Layout ── */
+.app{display:flex;width:100%;min-height:100vh}
+.sidebar{width:220px;flex-shrink:0;background:var(--bg-sidebar);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+.main{margin-left:220px;flex:1;padding:28px 32px;max-width:1100px}
+
+/* ── Sidebar ── */
+.sidebar-logo{padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-logo-title{color:#fff;font-weight:700;font-size:15px;letter-spacing:.2px}
+.sidebar-logo-sub{color:#6b7280;font-size:11px;margin-top:2px}
+.sidebar-nav{flex:1;padding:14px 10px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:var(--text-sidebar);font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;width:100%;text-align:left;transition:all .15s}
+.nav-item:hover:not(:disabled){background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:rgba(79,70,229,.25);color:#a5b4fc}
+.nav-item:disabled{opacity:.4;cursor:not-allowed}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.sidebar-user{padding:14px 12px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+.sidebar-user-avatar{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;color:#9ca3af;flex-shrink:0}
+.sidebar-user-name{color:#fff;font-size:12px;font-weight:600}
+.sidebar-user-role{color:#6b7280;font-size:10px;margin-top:1px}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border:none;background:transparent;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.tab:hover{color:var(--text-secondary)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab svg{width:15px;height:15px}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);transition:all .15s;white-space:nowrap}
+.btn:hover{background:var(--bg-hover)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{background:var(--accent-hover)}
+.btn.danger{background:#fee2e2;color:#dc2626;border-color:#fca5a5}
+.btn.success{background:#d1fae5;color:#065f46;border-color:#6ee7b7}
+.btn.ghost{background:transparent}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn svg{width:14px;height:14px;flex-shrink:0}
+.lock-icon{width:10px;height:10px;opacity:.5}
+
+/* ── PRO Badge ── */
+.pro-badge{display:inline-flex;align-items:center;gap:2px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:9px;font-weight:700;letter-spacing:.5px;padding:1px 5px;border-radius:4px;text-transform:uppercase;vertical-align:middle;margin-left:5px}
+
+/* ── Status badge ── */
+.status{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.status.draft{background:#f1f5f9;color:#64748b}
+.status.pending{background:#fef3c7;color:#92400e}
+.status.active{background:#d1fae5;color:#065f46}
+.status.closed{background:#e0e7ff;color:#3730a3}
+.status svg{width:11px;height:11px}
+
+/* ── Page header ── */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+.page-title{font-size:20px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:10px}
+.page-sub{font-size:12px;color:var(--text-muted);margin-top:3px}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ── Section card ── */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden}
+.card-head{padding:13px 20px;border-bottom:1px solid var(--border);background:var(--bg-hover);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-weight:600;font-size:13px;color:var(--text-primary)}
+.card-body{padding:20px}
+
+/* ── Form elements ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.form-grid.full{grid-column:1/-1}
+.label{font-size:12px;color:var(--text-muted);margin-bottom:6px;display:block}
+.fake-input{padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-hover);font-size:13px;color:var(--text-primary);display:flex;align-items:center}
+.tab-group{display:flex;gap:4px;flex-wrap:wrap}
+.tab-pill{padding:6px 13px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg-hover);color:var(--text-secondary);display:inline-flex;align-items:center;gap:4px;transition:all .15s}
+.tab-pill.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tab-pill svg{width:10px;height:10px;opacity:.6}
+
+/* ── Table ── */
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{padding:8px 14px;text-align:left;font-weight:600;color:var(--text-muted);border-bottom:1px solid var(--border);background:var(--bg-hover);white-space:nowrap}
+.data-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text-secondary)}
+.data-table td.bold{font-weight:600;color:var(--text-primary)}
+.data-table td.name{font-weight:500;color:var(--text-primary)}
+.pay-status{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pay-paid{background:#d1fae5;color:#065f46}
+.pay-current{background:#dbeafe;color:#1e40af}
+.pay-pending{background:#f1f5f9;color:#64748b}
+
+/* ── Scoring ── */
+.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.score-box{padding:16px;border-radius:10px;border:1px solid var(--border);background:var(--bg-hover)}
+.score-num{font-size:38px;font-weight:800;color:#059669;line-height:1}
+.score-class{font-size:20px;font-weight:700;color:#059669;padding-bottom:4px}
+.score-bar{height:6px;border-radius:3px;background:linear-gradient(90deg,#ef4444 0%,#f59e0b 40%,#22c55e 75%,#16a34a 100%);position:relative;margin-top:12px}
+.score-dot{position:absolute;top:-4px;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #059669;transform:translateX(-50%)}
+.score-labels{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:var(--text-muted)}
+.check-row{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:12px;border-bottom:1px solid var(--border)}
+.check-row:last-child{border-bottom:none}
+.check-label{color:var(--text-secondary);flex:1}
+.check-ok{color:#059669;font-weight:500}
+.check-warn{color:#d97706;font-weight:500}
+
+/* ── Assets & Docs ── */
+.asset-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-hover);margin-bottom:8px}
+.asset-name{font-size:13px;font-weight:600;color:var(--text-primary)}
+.asset-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+.asset-val{font-size:13px;font-weight:700;color:var(--text-primary)}
+.doc-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-hover);margin-bottom:8px}
+.doc-name{font-size:13px;font-weight:500;color:var(--text-primary)}
+.doc-meta{font-size:11px;color:var(--text-muted);margin-top:1px}
+.drop-zone{border:2px dashed var(--border);border-radius:10px;padding:28px;text-align:center;background:var(--bg-hover);margin-top:8px}
+.drop-zone p{font-size:13px;color:var(--text-muted);margin-bottom:10px}
+
+/* ── Workflow footer ── */
+.wf-footer{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;flex-wrap:wrap;gap:10px}
+
+/* ── Calculator ── */
+.calc-grid{display:grid;grid-template-columns:360px 1fr;gap:20px}
+.calc-form{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.calc-result{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text-muted);margin-bottom:6px}
+.field input,.field select{width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);font-size:13px;color:var(--text-primary);font-family:inherit;outline:none;transition:border .15s}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.calc-btn{width:100%;padding:11px;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:background .15s}
+.calc-btn:hover{background:var(--accent-hover)}
+.result-summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.result-card{background:var(--bg-hover);border-radius:8px;padding:12px 14px}
+.result-label{font-size:11px;color:var(--text-muted);margin-bottom:4px}
+.result-value{font-size:18px;font-weight:700;color:var(--text-primary)}
+.result-value.accent{color:var(--accent)}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted)}
+.empty-state svg{margin-bottom:12px;opacity:.3}
+.empty-state p{font-size:13px}
+
+/* ── Modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg-card);border-radius:16px;padding:36px 40px;max-width:420px;width:90%;border:1px solid var(--border);text-align:center}
+.modal-icon{width:56px;height:56px;border-radius:16px;background:#fef3c711;border:1px solid #f59e0b33;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.modal-icon svg{width:26px;height:26px;color:#f59e0b}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:8px}
+.modal p{font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:6px}
+.modal p strong{color:var(--text-primary)}
+.modal-actions{display:flex;gap:10px;justify-content:center;margin-top:26px}
+.modal-close{padding:10px 20px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);font-size:13px;cursor:pointer;font-family:inherit}
+.modal-cta{padding:10px 22px;border-radius:8px;border:none;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px}
+.modal-cta svg{width:14px;height:14px}
+
+
+/* ── Overview dashboard ── */
+.page-overview{display:none}
+.dash-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.kpi-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+.kpi-value{font-size:28px;font-weight:800;color:var(--text-primary);line-height:1}
+.kpi-sub{font-size:12px;color:var(--text-muted)}
+.kpi-up{color:#059669;font-weight:600}
+.kpi-down{color:#dc2626;font-weight:600}
+.dash-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.dash-row.three{grid-template-columns:1fr 1fr 1fr}
+.dash-row.wide{grid-template-columns:2fr 1fr}
+.chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.chart-title{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:4px}
+.chart-sub{font-size:11px;color:var(--text-muted);margin-bottom:16px}
+.chart-wrap{position:relative}
+.manager-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.manager-row:last-child{border-bottom:none}
+.manager-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.manager-name{font-size:13px;font-weight:600;color:var(--text-primary);flex:1}
+.manager-meta{font-size:11px;color:var(--text-muted)}
+.manager-bar-wrap{width:100px;height:6px;background:var(--bg-hover);border-radius:3px;overflow:hidden}
+.manager-bar{height:100%;border-radius:3px;background:var(--accent)}
+.wf-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:var(--bg-hover);border:1px solid var(--border);margin-bottom:8px}
+.wf-label{font-size:13px;font-weight:500;color:var(--text-primary)}
+.wf-count{font-size:18px;font-weight:800;color:var(--accent)}
+
+
+/* ── Dashboard ── */
+.page-overview{display:none}
+.dash-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.kpi-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.kpi-value{font-size:28px;font-weight:800;color:var(--text-primary);line-height:1;margin-bottom:6px}
+.kpi-sub{font-size:12px;color:var(--text-muted)}
+.kpi-up{color:#059669;font-weight:600}
+.kpi-down{color:#dc2626;font-weight:600}
+.dash-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.dash-row.wide{grid-template-columns:2fr 1fr}
+.dash-row.full{grid-template-columns:1fr}
+.chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.chart-title{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:2px}
+.chart-sub{font-size:11px;color:var(--text-muted);margin-bottom:14px}
+.chart-wrap{position:relative}
+.wf-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:8px;margin-bottom:6px;background:var(--bg-hover)}
+.wf-label{font-size:13px;color:var(--text-secondary)}
+.wf-count{font-size:18px;font-weight:800}
+.wf-bar-wrap{height:8px;border-radius:4px;background:var(--border);margin-top:4px;overflow:hidden}
+.wf-bar{height:100%;border-radius:4px;transition:width .6s}
+.mgr-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.mgr-row:last-child{border-bottom:none}
+.mgr-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.mgr-name{font-size:13px;font-weight:600;color:var(--text-primary)}
+.mgr-meta{font-size:11px;color:var(--text-muted)}
+.mgr-sum{font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+.check-stat-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.check-stat-label{font-size:12px;color:var(--text-secondary);width:120px;flex-shrink:0}
+.check-stat-bar{flex:1;height:8px;border-radius:4px;background:var(--border);overflow:hidden}
+.check-stat-fill{height:100%;border-radius:4px}
+.check-stat-num{font-size:12px;font-weight:700;color:var(--text-primary);width:28px;text-align:right}
+
+/* ── Clients page ── */
+.page-clients{display:none}
+.search-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.search-input{flex:1;min-width:200px;padding:9px 14px 9px 36px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);font-size:13px;color:var(--text-primary);font-family:inherit;outline:none;transition:border .15s}
+.search-input:focus{border-color:var(--accent)}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-muted)}
+.clients-table{width:100%;border-collapse:collapse;font-size:13px}
+.clients-table th{padding:10px 16px;text-align:left;font-weight:600;color:var(--text-muted);border-bottom:1px solid var(--border);background:var(--bg-hover);white-space:nowrap;font-size:12px}
+.clients-table td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
+.clients-table tr:hover td{background:var(--bg-hover);cursor:pointer}
+.client-name-cell{font-weight:600;color:var(--text-primary)}
+.client-bin{font-size:11px;color:var(--text-muted);margin-top:2px}
+.cst-active{background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.cst-check{background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.cst-closed{background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+/* ── Client card modal ── */
+.client-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;align-items:flex-start;justify-content:flex-end}
+.client-modal-overlay.show{display:flex}
+.client-card{width:560px;height:100vh;background:var(--bg-card);overflow-y:auto;box-shadow:-8px 0 40px rgba(0,0,0,.2);display:flex;flex-direction:column}
+.client-card-head{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg-hover);position:sticky;top:0;z-index:10}
+.client-card-title{font-size:15px;font-weight:700;color:var(--text-primary)}
+.client-card-body{padding:24px;flex:1}
+.cc-section{margin-bottom:24px}
+.cc-section-title{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.cc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cc-field{display:flex;flex-direction:column;gap:4px}
+.cc-field.full{grid-column:1/-1}
+.cc-label{font-size:11px;color:var(--text-muted);font-weight:500}
+.cc-value{font-size:13px;color:var(--text-primary);font-weight:500;padding:8px 12px;background:var(--bg-hover);border-radius:7px;border:1px solid var(--border)}
+.cc-value.mono{font-family:monospace;font-size:12px}
+.contract-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-hover);margin-bottom:8px}
+.contract-num{font-size:13px;font-weight:600;color:var(--accent)}
+.contract-meta{font-size:11px;color:var(--text-muted);margin-top:2px}
+.contract-sum{font-size:13px;font-weight:700;color:var(--text-primary)}
+.doc-attach{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-hover);margin-bottom:8px}
+.no-results{text-align:center;padding:40px;color:var(--text-muted);font-size:13px}
+
+.role-badge{font-size:11px;background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-weight:600}
+
+/* ── Login ── */
+.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1a1d23 0%,#23273a 100%);display:flex;align-items:center;justify-content:center;z-index:9999}
+.login-screen.hidden{display:none}
+.login-box{background:#fff;border-radius:16px;padding:40px 44px;width:100%;max-width:380px;box-shadow:0 24px 80px rgba(0,0,0,.4)}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo-title{font-size:22px;font-weight:700;color:#111827;letter-spacing:-.3px}
+.login-logo-sub{font-size:12px;color:#6b7280;margin-top:4px}
+.login-logo-icon{width:52px;height:52px;border-radius:14px;background:#4f46e5;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px}
+.login-field input{width:100%;padding:11px 14px;border-radius:8px;border:1px solid #e5e7eb;font-size:14px;color:#111827;font-family:inherit;outline:none;transition:border .15s;background:#f9fafb}
+.login-field input:focus{border-color:#4f46e5;background:#fff}
+.login-btn{width:100%;padding:12px;border-radius:8px;background:#4f46e5;color:#fff;font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:background .15s;margin-top:4px}
+.login-btn:hover{background:#4338ca}
+.login-error{background:#fee2e2;color:#dc2626;font-size:12px;padding:9px 12px;border-radius:8px;margin-bottom:14px;display:none;border:1px solid #fca5a5}
+.login-error.show{display:block}
+.login-hint{text-align:center;margin-top:18px;font-size:11px;color:#9ca3af}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+      </div>
+      <div class="login-logo-title">ПромЭкспорт CRM</div>
+      <div class="login-logo-sub">Система управления лизингом</div>
+    </div>
+    <div class="login-error" id="loginError">Неверный логин или пароль</div>
+    <div class="login-field">
+      <label>Логин</label>
+      <input type="text" id="loginInput" placeholder="Введите логин" autocomplete="username" />
+    </div>
+    <div class="login-field">
+      <label>Пароль</label>
+      <input type="password" id="passInput" placeholder="Введите пароль" autocomplete="current-password" />
+    </div>
+    <button class="login-btn" onclick="doLogin()">Войти</button>
+    <div class="login-hint">Демо-доступ: admin / 12345</div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="proModal">
+  <div class="modal">
+    <div class="modal-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+    </div>
+    <h3>Требуется авторизация</h3>
+    <p>Действие <strong id="modalFeature">«Эта функция»</strong> требует подтверждения личности первого руководителя организации.</p>
+    <p>Для продолжения необходима <strong>авторизация с ЭЦП</strong> первого руководителя компании, выданной Национальным удостоверяющим центром РК (НУЦ РК).</p>
+    <div style="display:flex;align-items:center;gap:10px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px 14px;margin:16px 0;text-align:left">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" style="flex-shrink:0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <div style="font-size:12px;color:#0369a1;line-height:1.5">
+        Подключите ключ ЭЦП (NCA Layer) и нажмите «Подписать».<br/>
+        Поддерживаются форматы: <strong>RSA</strong> и <strong>GOST</strong>.
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-close" onclick="closeModal()">Отмена</button>
+      <button class="modal-cta" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Подписать с ЭЦП
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-title">ПромЭкспорт</div>
+      <div class="sidebar-logo-sub">CRM Лизинг</div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item" id="nav-overview" onclick="showPage('overview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Обзор
+      </button>
+      <button class="nav-item" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Администрирование
+      </button>
+      <button class="nav-item" id="nav-clients" onclick="showPage('clients')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Клиенты
+      </button>
+      <button class="nav-item active" id="nav-leasing" onclick="showPage('leasing')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+        Лизинг
+      </button>
+    </nav>
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div>
+        <div class="sidebar-user-name">Демо</div>
+        <div class="sidebar-user-role">Только калькулятор</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <!-- Page header -->
+    <div class="page-header">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+          <button class="btn sm" onclick="pro('Список договоров')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            К списку
+          </button>
+          <div class="page-title">
+            Договор № ЛД-2025-0047
+            <span class="status pending">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              На согласовании
+            </span>
+          </div>
+        </div>
+        <div class="page-sub">ТОО «Алматы Строй Групп» · Создан 12.03.2025</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn sm" onclick="pro('Экспорт карточки договора в Excel')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Excel
+          <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </button>
+        <button class="btn sm" onclick="pro('Печать / PDF договора')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          PDF
+          <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </button>
+        <button class="btn sm ghost" onclick="pro('Сохранение черновика договора')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Черновик
+          <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </button>
+        <button class="btn sm primary" onclick="pro('Отправка договора на согласование')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          На согласование
+          <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.7"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" id="tab-calc" onclick="switchTab('calc')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+        Калькулятор
+      </button>
+      <button class="tab" id="tab-contract" onclick="switchTab('contract')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Договор
+        <span class="pro-badge">
+          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          PRO
+        </span>
+      </button>
+    </div>
+
+    <!-- ═══════════════ CALCULATOR TAB ═══════════════ -->
+    <div id="pane-calc">
+
+      <!-- Партии tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+        <span style="font-size:12px;color:var(--text-muted);font-weight:500">Партии:</span>
+        <button class="tab-pill on" id="tab-p1" onclick="switchBatch(1)">Партия 1</button>
+        <button class="tab-pill" id="tab-p2" onclick="switchBatch(2)">Партия 2</button>
+        <button class="tab-pill" id="tab-p3" onclick="switchBatch(3)">Партия 3</button>
+        <button class="tab-pill" id="tab-cons" onclick="switchBatch(0)" style="background:var(--bg-hover);color:var(--text-secondary)">Консолидация</button>
+      </div>
+
+      <div class="calc-grid">
+        <div class="calc-form">
+          <div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:16px;display:flex;align-items:center;gap:8px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+            Параметры партии
+          </div>
+
+          <div class="field">
+            <label>Стоимость ед. товара ($)</label>
+            <input type="number" id="unitPrice" value="3400000" step="1000" oninput="calcAll()" />
+          </div>
+          <div class="field">
+            <label id="qtyLabel">Количество единиц (партия 1)</label>
+            <input type="number" id="unitQty" value="30" min="1" step="1" oninput="calcAll()" />
+          </div>
+          <div class="field">
+            <label>Курс тенге (₸ за $1)</label>
+            <input type="number" id="fxRate" value="6.5" step="0.01" oninput="calcAll()" />
+          </div>
+          <div class="field">
+            <label>Ставка вознаграждения (% год.)</label>
+            <input type="number" id="rate" value="13.5" step="0.1" oninput="calcAll()" />
+          </div>
+          <div class="field">
+            <label>Аванс (%)</label>
+            <input type="number" id="advance" value="15" min="0" max="90" step="1" oninput="calcAll()" />
+          </div>
+          <div class="field">
+            <label>Срок лизинга (мес.)</label>
+            <input type="number" id="term" value="48" min="3" max="84" step="1" oninput="calcAll()" />
+          </div>
+          <div class="field">
+            <label>НДС на импорт (%)</label>
+            <input type="number" id="vat" value="16" min="0" max="30" step="1" oninput="calcAll()" />
+          </div>
+          <div class="field">
+            <label>Дата аванса</label>
+            <input type="date" id="advanceDate" value="2025-12-20" oninput="calcAll()" />
+          </div>
+          <div class="field">
+            <label>Дата передачи в лизинг</label>
+            <input type="date" id="deliveryDate" value="2026-03-20" oninput="calcAll()" />
+          </div>
+          <div class="field">
+            <label>День платежа каждого месяца</label>
+            <input type="number" id="payDay" value="26" min="1" max="28" step="1" oninput="calcAll()" />
+          </div>
+          <button class="calc-btn" onclick="calcAll()">Рассчитать</button>
+        </div>
+
+        <div class="calc-result">
+          <div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+            <span style="display:flex;align-items:center;gap:8px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              <span id="resultTitle">Партия 1 — График платежей</span>
+            </span>
+          </div>
+
+          <div class="result-summary" style="grid-template-columns:repeat(3,1fr)">
+            <div class="result-card"><div class="result-label">Стоимость ПЛ (₸)</div><div class="result-value accent" id="r-total-cost">—</div></div>
+            <div class="result-card"><div class="result-label">Аванс (₸)</div><div class="result-value" id="r-advance">—</div></div>
+            <div class="result-card"><div class="result-label">Финансирование (₸)</div><div class="result-value" id="r-finance">—</div></div>
+            <div class="result-card"><div class="result-label">Ежемес. платёж (₸)</div><div class="result-value" id="r-monthly">—</div></div>
+            <div class="result-card"><div class="result-label">Сумма вознаграждения</div><div class="result-value" id="r-overpay">—</div></div>
+            <div class="result-card"><div class="result-label">Итого к уплате (₸)</div><div class="result-value" id="r-total">—</div></div>
+          </div>
+
+          <div style="overflow-x:auto;max-height:460px;overflow-y:auto;margin-top:14px">
+            <table class="data-table" id="schedTable">
+              <thead><tr>
+                <th>№</th>
+                <th>Дата</th>
+                <th>Аванс (ПЛ)</th>
+                <th>Аванс (НДС)</th>
+                <th>Основной долг</th>
+                <th>Вознаграждение</th>
+                <th>Итого</th>
+                <th>Остаток ОД</th>
+              </tr></thead>
+              <tbody id="schedBody"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px">Заполните параметры и нажмите «Рассчитать»</td></tr></tbody>
+            </table>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+            <button class="btn sm" onclick="exportCSV()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Скачать CSV
+            </button>
+            <button class="btn sm" onclick="exportPDF()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              Печать / PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ CONTRACT TAB ═══════════════ -->
+    <div id="pane-contract" style="display:none">
+
+      <!-- Параметры -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Параметры договора</span>
+          <span class="pro-badge"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> PRO</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div style="grid-column:1/-1">
+              <span class="label">Контрагент</span>
+              <div style="display:flex;gap:8px">
+                <div class="fake-input" style="flex:1">ТОО «Алматы Строй Групп» · БИН 180240012345</div>
+                <button class="btn" onclick="pro('Поиск и выбор контрагента из справочника')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  Выбрать из справочника
+                  <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </button>
+              </div>
+            </div>
+            <div>
+              <span class="label">Тип договора <span class="pro-badge" style="margin-left:0"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> PRO</span></span>
+              <div class="tab-group">
+                <button class="tab-pill on" onclick="pro('Тип договора')">Финансовый <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="tab-pill" onclick="pro('Тип договора')">Операционный <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="tab-pill" onclick="pro('Тип договора')">Лизбэк <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+              </div>
+            </div>
+            <div>
+              <span class="label">Валюта <span class="pro-badge" style="margin-left:0"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> PRO</span></span>
+              <div class="tab-group">
+                <button class="tab-pill on" onclick="pro('Валюта договора')">KZT <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="tab-pill" onclick="pro('Валюта договора')">USD <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="tab-pill" onclick="pro('Валюта договора')">EUR <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+              </div>
+            </div>
+            <div>
+              <span class="label">Тип графика <span class="pro-badge" style="margin-left:0"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> PRO</span></span>
+              <div class="tab-group">
+                <button class="tab-pill on" onclick="pro('Тип графика платежей')">Аннуитетный <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="tab-pill" onclick="pro('Тип графика платежей')">Дифференцированный <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Скоринг -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Скоринг и проверки контрагента</span>
+          <span class="role-badge">Андеррайтер / Администратор</span>
+        </div>
+        <div class="card-body">
+          <div class="score-grid">
+            <div class="score-box">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                  <span style="font-size:13px;font-weight:600">Скоринговая модель</span>
+                </div>
+                <button class="btn sm" onclick="pro('Скоринговая модель контрагента')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                  Запустить
+                  <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </button>
+              </div>
+              <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:12px">
+                <div class="score-num">742</div>
+                <div class="score-class">B+</div>
+                <div style="font-size:11px;color:var(--text-muted);padding-bottom:5px">обновлено 15.03.2025</div>
+              </div>
+              <div class="score-bar">
+                <div class="score-dot" style="left:74%"></div>
+              </div>
+              <div class="score-labels"><span>E</span><span>D</span><span>C</span><span>B</span><span>A</span><span>A+</span></div>
+            </div>
+            <div class="score-box">
+              <div style="font-size:13px;font-weight:600;margin-bottom:12px">Внешние проверки</div>
+              <div class="check-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span class="check-label">КГД МФ РК — налоги, НДС</span>
+                <span class="check-ok">Проверено</span>
+              </div>
+              <div class="check-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span class="check-label">ГБД ФЛ/ЮЛ — регистрация</span>
+                <span class="check-ok">Проверено</span>
+              </div>
+              <div class="check-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span class="check-label">БКИ — кредитная история</span>
+                <span class="check-warn">Требует внимания</span>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap">
+                <button class="btn sm" onclick="pro('Проверка по КГД МФ РК')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>КГД
+                  <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </button>
+                <button class="btn sm" onclick="pro('Проверка по ГБД ФЛ/ЮЛ')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>ГБД
+                  <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </button>
+                <button class="btn sm" onclick="pro('Запрос кредитной истории (БКИ)')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>БКИ
+                  <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- График платежей -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">График платежей</span>
+          <span class="pro-badge"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> PRO</span>
+        </div>
+        <div class="card-body">
+          <div style="overflow-x:auto;margin-bottom:16px">
+            <table class="data-table">
+              <thead><tr><th>Дата</th><th>Основной долг</th><th>Проценты</th><th>НДС</th><th>Итого</th><th>Статус</th></tr></thead>
+              <tbody>
+                <tr><td class="name">Янв 2025</td><td>1 250 000</td><td>187 500</td><td>22 500</td><td class="bold">1 460 000</td><td><span class="pay-status pay-paid">Оплачен</span></td></tr>
+                <tr><td class="name">Фев 2025</td><td>1 250 000</td><td>175 000</td><td>21 000</td><td class="bold">1 446 000</td><td><span class="pay-status pay-paid">Оплачен</span></td></tr>
+                <tr><td class="name">Мар 2025</td><td>1 250 000</td><td>162 500</td><td>19 500</td><td class="bold">1 432 000</td><td><span class="pay-status pay-current">Текущий</span></td></tr>
+                <tr><td class="name">Апр 2025</td><td>1 250 000</td><td>150 000</td><td>18 000</td><td class="bold">1 418 000</td><td><span class="pay-status" style="background:#f1f5f9;color:#64748b">Ожидает</span></td></tr>
+                <tr><td class="name">Май 2025</td><td>1 250 000</td><td>137 500</td><td>16 500</td><td class="bold">1 404 000</td><td><span class="pay-status" style="background:#f1f5f9;color:#64748b">Ожидает</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn" onclick="pro('Пересчёт графика платежей')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Пересчитать
+              <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </button>
+            <button class="btn" onclick="pro('Реструктуризация условий договора')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Реструктуризация
+              <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </button>
+            <button class="btn" onclick="pro('Экспорт графика платежей в Excel')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Экспорт графика
+              <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </button>
+            <button class="btn" onclick="pro('Акт сверки взаиморасчётов')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Сверка взаиморасчётов
+              <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Предметы лизинга -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Предметы лизинга</span>
+          <span class="pro-badge"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> PRO</span>
+        </div>
+        <div class="card-body">
+          <div class="asset-row">
+            <div>
+              <div class="asset-name">Экскаватор Komatsu PC200</div>
+              <div class="asset-sub">Оборудование · KPC200-2024-001</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <div class="asset-val">45 000 000 ₸</div>
+              <button class="btn sm" onclick="pro('Управление предметами лизинга')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="asset-row">
+            <div>
+              <div class="asset-name">Toyota Land Cruiser 300</div>
+              <div class="asset-sub">Транспорт · JTMCV02J504123456</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <div class="asset-val">28 000 000 ₸</div>
+              <button class="btn sm" onclick="pro('Управление предметами лизинга')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              </button>
+            </div>
+          </div>
+          <button class="btn ghost" onclick="pro('Добавление предмета лизинга к договору')" style="margin-top:4px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            + Добавить предмет лизинга
+            <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Документы -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Документы</span>
+          <span class="pro-badge"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> PRO</span>
+        </div>
+        <div class="card-body">
+          <div class="doc-row">
+            <div style="display:flex;align-items:center;gap:10px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <div>
+                <div class="doc-name">Устав_ТОО_Алматы.pdf</div>
+                <div class="doc-meta">1.2 MB · 12.03.2025</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn sm" onclick="pro('Скачивание документов')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Скачать
+                <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </button>
+              <button class="btn sm" onclick="pro('Удаление документа')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="doc-row">
+            <div style="display:flex;align-items:center;gap:10px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <div>
+                <div class="doc-name">Финансовая_отчетность_2024.pdf</div>
+                <div class="doc-meta">3.4 MB · 12.03.2025</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn sm" onclick="pro('Скачивание документов')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Скачать
+                <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </button>
+              <button class="btn sm" onclick="pro('Удаление документа')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="drop-zone">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" style="margin-bottom:8px"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            <p>Перетащите файлы сюда или выберите вручную</p>
+            <button class="btn" onclick="pro('Загрузка и прикрепление документов')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              Прикрепить документ
+              <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Workflow footer -->
+      <div class="wf-footer">
+        <button class="btn danger" onclick="pro('Расторжение договора (необратимое действие)')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          Расторгнуть договор
+          <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" onclick="pro('Закрытие договора')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Закрыть договор
+            <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </button>
+          <button class="btn success" onclick="pro('Активация договора андеррайтером')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Подтвердить (активировать)
+            <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+
+  <!-- ═══════════════ OVERVIEW PAGE ═══════════════ -->
+  <div id="page-overview" class="page-overview">
+    <div class="page-header" style="margin-bottom:20px">
+      <div>
+        <div class="page-title">Обзор</div>
+        <div class="page-sub">Сводная аналитика по системе · обновлено сегодня в 09:00</div>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);background:var(--bg-card);border:1px solid var(--border);padding:6px 14px;border-radius:8px">
+        Период: <strong style="color:var(--text-primary)">Январь — Апрель 2025</strong>
+      </div>
+    </div>
+
+    <!-- KPI cards -->
+    <div class="dash-kpi">
+      <div class="kpi-card" style="border-top:3px solid #4f46e5">
+        <div class="kpi-label">Всего клиентов</div>
+        <div class="kpi-value">100</div>
+        <div class="kpi-sub"><span class="kpi-up">+12</span> за квартал</div>
+      </div>
+      <div class="kpi-card" style="border-top:3px solid #059669">
+        <div class="kpi-label">Оборот 2025</div>
+        <div class="kpi-value" style="font-size:22px">4,2 млрд ₸</div>
+        <div class="kpi-sub"><span class="kpi-up">+18%</span> к прошлому году</div>
+      </div>
+      <div class="kpi-card" style="border-top:3px solid #0284c7">
+        <div class="kpi-label">Активных договоров</div>
+        <div class="kpi-value">63</div>
+        <div class="kpi-sub"><span class="kpi-up">+7</span> за квартал</div>
+      </div>
+      <div class="kpi-card" style="border-top:3px solid #dc2626">
+        <div class="kpi-label">Просроченных платежей</div>
+        <div class="kpi-value" style="color:#dc2626">8</div>
+        <div class="kpi-sub"><span class="kpi-down">+2</span> за месяц</div>
+      </div>
+    </div>
+
+    <!-- Row 1: Оборот + Клиенты по статусам -->
+    <div class="dash-row wide">
+      <div class="chart-card">
+        <div class="chart-title">Оборот по месяцам (млн ₸)</div>
+        <div class="chart-sub">Поступившие платежи за 2025 год</div>
+        <div class="chart-wrap" style="height:230px"><canvas id="chartRevenue"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Клиенты по статусам</div>
+        <div class="chart-sub">Всего 100 компаний</div>
+        <div class="chart-wrap" style="height:170px;display:flex;align-items:center;justify-content:center"><canvas id="chartClientStatus"></canvas></div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+            <span style="width:10px;height:10px;border-radius:50%;background:#059669;flex-shrink:0;display:inline-block"></span>
+            <span style="flex:1;color:var(--text-secondary)">Активные</span>
+            <strong style="color:var(--text-primary)">58</strong>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+            <span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;flex-shrink:0;display:inline-block"></span>
+            <span style="flex:1;color:var(--text-secondary)">На проверке</span>
+            <strong style="color:var(--text-primary)">27</strong>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+            <span style="width:10px;height:10px;border-radius:50%;background:#ef4444;flex-shrink:0;display:inline-block"></span>
+            <span style="flex:1;color:var(--text-secondary)">Закрытые</span>
+            <strong style="color:var(--text-primary)">15</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Платежи по статусам + Договоры workflow -->
+    <div class="dash-row">
+      <div class="chart-card">
+        <div class="chart-title">Платежи по статусам</div>
+        <div class="chart-sub">Распределение всех платежей в системе</div>
+        <div class="chart-wrap" style="height:210px"><canvas id="chartPayments"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Договоры — статус рассмотрения</div>
+        <div class="chart-sub">Текущее состояние pipeline</div>
+        <div style="margin-top:8px">
+          <div class="wf-row">
+            <span class="wf-label" style="font-size:12px;color:var(--text-secondary)">Черновики</span>
+            <div style="flex:1;margin:0 12px"><div class="wf-bar-wrap"><div class="wf-bar" style="width:10%;background:#94a3b8"></div></div></div>
+            <span class="wf-count" style="color:#64748b;font-size:16px">14</span>
+          </div>
+          <div class="wf-row">
+            <span class="wf-label" style="font-size:12px;color:var(--text-secondary)">На согласовании</span>
+            <div style="flex:1;margin:0 12px"><div class="wf-bar-wrap"><div class="wf-bar" style="width:14%;background:#f59e0b"></div></div></div>
+            <span class="wf-count" style="color:#d97706;font-size:16px">19</span>
+          </div>
+          <div class="wf-row">
+            <span class="wf-label" style="font-size:12px;color:var(--text-secondary)">Принятие решения</span>
+            <div style="flex:1;margin:0 12px"><div class="wf-bar-wrap"><div class="wf-bar" style="width:8%;background:#8b5cf6"></div></div></div>
+            <span class="wf-count" style="color:#7c3aed;font-size:16px">11</span>
+          </div>
+          <div class="wf-row">
+            <span class="wf-label" style="font-size:12px;color:var(--text-secondary)">Активные</span>
+            <div style="flex:1;margin:0 12px"><div class="wf-bar-wrap"><div class="wf-bar" style="width:46%;background:#059669"></div></div></div>
+            <span class="wf-count" style="color:#059669;font-size:16px">63</span>
+          </div>
+          <div class="wf-row">
+            <span class="wf-label" style="font-size:12px;color:var(--text-secondary)">Закрытые</span>
+            <div style="flex:1;margin:0 12px"><div class="wf-bar-wrap"><div class="wf-bar" style="width:23%;background:#6366f1"></div></div></div>
+            <span class="wf-count" style="color:#4f46e5;font-size:16px">31</span>
+          </div>
+          <div class="wf-row">
+            <span class="wf-label" style="font-size:12px;color:var(--text-secondary)">Расторгнутые</span>
+            <div style="flex:1;margin:0 12px"><div class="wf-bar-wrap"><div class="wf-bar" style="width:3%;background:#ef4444"></div></div></div>
+            <span class="wf-count" style="color:#dc2626;font-size:16px">4</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: Внешние проверки + Менеджеры -->
+    <div class="dash-row">
+      <div class="chart-card">
+        <div class="chart-title">Внешние проверки контрагентов</div>
+        <div class="chart-sub">КГД МФ РК, ГБД ФЛ/ЮЛ, БКИ — за I квартал 2025</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="chartChecks"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Менеджеры по продажам</div>
+        <div class="chart-sub">Клиенты и оборот в работе</div>
+        <div style="margin-top:6px" id="managerList"></div>
+      </div>
+    </div>
+
+    <!-- Row 4: Динамика -->
+    <div class="dash-row full">
+      <div class="chart-card">
+        <div class="chart-title">Динамика новых клиентов и договоров</div>
+        <div class="chart-sub">Поквартально за 2023–2025 годы</div>
+        <div class="chart-wrap" style="height:210px"><canvas id="chartGrowth"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ CLIENTS PAGE ═══════════════ -->
+  <div id="page-clients" class="page-clients">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Клиенты</div>
+        <div class="page-sub">Реестр компаний-лизингополучателей</div>
+      </div>
+      <button class="btn primary" onclick="pro('Добавление нового клиента')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        + Новый клиент
+        <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding:16px 20px">
+        <div class="search-bar">
+          <div class="search-wrap">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" id="searchName" placeholder="Поиск по названию компании..." oninput="filterClients()" />
+          </div>
+          <div class="search-wrap" style="max-width:220px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" id="searchBin" placeholder="Поиск по БИН..." oninput="filterClients()" />
+          </div>
+          <select onchange="filterClients()" id="filterStatus" style="padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);font-size:13px;color:var(--text-secondary);font-family:inherit;outline:none">
+            <option value="">Все статусы</option>
+            <option value="active">Активная</option>
+            <option value="check">На проверке</option>
+            <option value="closed">Закрытая</option>
+          </select>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="clients-table">
+            <thead>
+              <tr>
+                <th>Компания</th>
+                <th>БИН</th>
+                <th>Город</th>
+                <th>Отрасль</th>
+                <th>Договоров</th>
+                <th>Сумма лизинга</th>
+                <th>Статус</th>
+              </tr>
+            </thead>
+            <tbody id="clientsBody"></tbody>
+          </table>
+          <div id="noResults" class="no-results" style="display:none">Ничего не найдено</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client card drawer -->
+  <div class="client-modal-overlay" id="clientOverlay" onclick="closeClientCard(event)">
+    <div class="client-card" id="clientCard">
+      <div class="client-card-head">
+        <div>
+          <div class="client-card-title" id="ccTitle">—</div>
+          <div style="margin-top:4px" id="ccStatus"></div>
+        </div>
+        <button onclick="closeClientCard()" style="background:transparent;border:none;cursor:pointer;padding:6px;border-radius:6px;color:var(--text-muted)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="client-card-body" id="clientCardBody"></div>
+    </div>
+  </div>
+
+  </main>
+</div>
+
+<script>
+function doLogin() {
+  const login = document.getElementById('loginInput').value.trim();
+  const pass = document.getElementById('passInput').value;
+  const err = document.getElementById('loginError');
+  if (login === 'admin' && pass === '12345') {
+    document.getElementById('loginScreen').classList.add('hidden');
+    err.classList.remove('show');
+  } else {
+    err.classList.add('show');
+    document.getElementById('passInput').value = '';
+    document.getElementById('passInput').focus();
+  }
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !document.getElementById('loginScreen').classList.contains('hidden')) {
+    doLogin();
+  }
+});
+
+function pro(feature) {
+  document.getElementById('modalFeature').textContent = feature;
+  document.getElementById('proModal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('proModal').classList.remove('show');
+}
+document.getElementById('proModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+});
+
+function switchTab(name) {
+  document.getElementById('pane-calc').style.display = name === 'calc' ? '' : 'none';
+  document.getElementById('pane-contract').style.display = name === 'contract' ? '' : 'none';
+  document.getElementById('tab-calc').className = 'tab' + (name === 'calc' ? ' active' : '');
+  document.getElementById('tab-contract').className = 'tab' + (name === 'contract' ? ' active' : '');
+}
+
+function fmt(n) {
+  return Math.round(n).toLocaleString('ru-RU');
+}
+
+
+/* ════════ CLIENTS DATA ════════ */
+const CLIENTS = [
+  {
+    id:1, name:'ТОО «Алматы Строй Групп»', bin:'180240012345', status:'active',
+    city:'Алматы', industry:'Строительство', regDate:'14.02.2018',
+    address:'050010, г. Алматы, ул. Достык, 291, офис 504',
+    bank:'АО «Казкоммерцбанк»', iban:'KZ419261800023547890', bik:'KZKOKZKX',
+    contracts:[
+      {num:'ЛД-2025-0047', date:'12.03.2025', sum:'73 000 000 ₸', status:'active'},
+      {num:'ЛД-2024-0118', date:'05.07.2024', sum:'45 500 000 ₸', status:'closed'},
+    ],
+    docs:['Устав_ТОО_2023.pdf','Финансовая_отчётность_2024.pdf'],
+    totalSum:'118 500 000 ₸', contractsCount:2,
+    director:'Бейсенов Арман Серикович',
+  },
+  {
+    id:2, name:'ТОО «КазМунайСервис»', bin:'050340027891', status:'active',
+    city:'Атырау', industry:'Нефть и газ', regDate:'03.08.2005',
+    address:'060011, г. Атырау, пр. Азаттык, 48, офис 201',
+    bank:'АО «Народный Банк Казахстана»', iban:'KZ248560000012374561', bik:'HSBKKZKX',
+    contracts:[
+      {num:'ЛД-2025-0031', date:'20.01.2025', sum:'210 000 000 ₸', status:'active'},
+      {num:'ЛД-2024-0089', date:'14.04.2024', sum:'185 000 000 ₸', status:'active'},
+      {num:'ЛД-2023-0044', date:'01.03.2023', sum:'95 000 000 ₸', status:'closed'},
+    ],
+    docs:['Устав_ТОО.pdf','Лицензия_недропользование.pdf','Отчётность_2024.pdf'],
+    totalSum:'490 000 000 ₸', contractsCount:3,
+    director:'Досмагамбетов Нурлан Кайратович',
+  },
+  {
+    id:3, name:'АО «Павлодар Энерго»', bin:'000240003412', status:'active',
+    city:'Павлодар', industry:'Энергетика', regDate:'12.01.2000',
+    address:'140000, г. Павлодар, ул. Ленина, 126',
+    bank:'АО «Банк ЦентрКредит»', iban:'KZ319650000054781230', bik:'KCJBKZKX',
+    contracts:[
+      {num:'ЛД-2025-0008', date:'15.01.2025', sum:'320 000 000 ₸', status:'pending'},
+    ],
+    docs:['Устав_АО.pdf','Финансы_2024.pdf'],
+    totalSum:'320 000 000 ₸', contractsCount:1,
+    director:'Жуманов Серик Болатович',
+  },
+  {
+    id:4, name:'ТОО «Астана Транс Логистик»', bin:'150340056234', status:'check',
+    city:'Астана', industry:'Транспорт и логистика', regDate:'22.05.2015',
+    address:'010000, г. Астана, ул. Сыганак, 24, БЦ «Абу-Даби Плаза»',
+    bank:'АО «ForteBank»', iban:'KZ398580000078912340', bik:'IRTYKZKA',
+    contracts:[
+      {num:'ЛД-2025-0052', date:'28.03.2025', sum:'56 000 000 ₸', status:'pending'},
+    ],
+    docs:['Устав.pdf'],
+    totalSum:'56 000 000 ₸', contractsCount:1,
+    director:'Сейткали Дамир Маратович',
+  },
+  {
+    id:5, name:'ТОО «Карагандинский Завод»', bin:'021140018976', status:'check',
+    city:'Караганда', industry:'Машиностроение', regDate:'07.11.2002',
+    address:'100008, г. Караганда, пр. Бухар Жырау, 56',
+    bank:'АО «Halyk Bank»', iban:'KZ765601000099872340', bik:'HSBKKZKX',
+    contracts:[
+      {num:'ЛД-2025-0041', date:'05.03.2025', sum:'98 500 000 ₸', status:'pending'},
+      {num:'ЛД-2024-0201', date:'10.10.2024', sum:'67 000 000 ₸', status:'active'},
+    ],
+    docs:['Устав.pdf','Лицензия.pdf','Баланс_2024.pdf'],
+    totalSum:'165 500 000 ₸', contractsCount:2,
+    director:'Ким Александр Вячеславович',
+  },
+  {
+    id:6, name:'ТОО «АгроПром Шымкент»', bin:'110540029087', status:'active',
+    city:'Шымкент', industry:'Агропромышленность', regDate:'14.03.2011',
+    address:'160000, г. Шымкент, ул. Байтурсынова, 18',
+    bank:'АО «Казкоммерцбанк»', iban:'KZ419261800056321780', bik:'KZKOKZKX',
+    contracts:[
+      {num:'ЛД-2024-0177', date:'01.09.2024', sum:'42 000 000 ₸', status:'active'},
+    ],
+    docs:['Устав_ТОО.pdf','Отчётность.pdf'],
+    totalSum:'42 000 000 ₸', contractsCount:1,
+    director:'Айтенов Бекзат Ержанович',
+  },
+  {
+    id:7, name:'ТОО «Усть-Каменогорск Металл»', bin:'980340007651', status:'closed',
+    city:'Усть-Каменогорск', industry:'Металлургия', regDate:'18.06.1998',
+    address:'070004, г. Усть-Каменогорск, ул. Промышленная, 12',
+    bank:'АО «АТФБанк»', iban:'KZ876010000034512900', bik:'ATFBKZKA',
+    contracts:[
+      {num:'ЛД-2022-0093', date:'12.04.2022', sum:'130 000 000 ₸', status:'closed'},
+      {num:'ЛД-2021-0047', date:'05.02.2021', sum:'88 000 000 ₸', status:'closed'},
+    ],
+    docs:['Устав.pdf','Реш_о_ликвидации.pdf'],
+    totalSum:'218 000 000 ₸', contractsCount:2,
+    director:'Федоров Олег Николаевич',
+  },
+  {
+    id:8, name:'ТОО «Актобе Буровые Системы»', bin:'070640034512', status:'active',
+    city:'Актобе', industry:'Нефтесервис', regDate:'09.09.2007',
+    address:'030000, г. Актобе, пр. Победы, 154, офис 302',
+    bank:'АО «Народный Банк»', iban:'KZ248560000076543210', bik:'HSBKKZKX',
+    contracts:[
+      {num:'ЛД-2025-0019', date:'29.01.2025', sum:'175 000 000 ₸', status:'active'},
+      {num:'ЛД-2024-0145', date:'20.07.2024', sum:'112 000 000 ₸', status:'active'},
+    ],
+    docs:['Устав.pdf','Отчётность_2024.pdf','Сертификат_ISO.pdf'],
+    totalSum:'287 000 000 ₸', contractsCount:2,
+    director:'Мухамбетов Руслан Ерланович',
+  },
+  {
+    id:9, name:'ТОО «Костанай Агро Инвест»', bin:'130440021987', status:'check',
+    city:'Костанай', industry:'Сельское хозяйство', regDate:'20.04.2013',
+    address:'110000, г. Костанай, ул. Тәуелсіздік, 81',
+    bank:'АО «Bank RBK»', iban:'KZ244650000089012340', bik:'RRBBKZKA',
+    contracts:[
+      {num:'ЛД-2025-0058', date:'01.04.2025', sum:'38 500 000 ₸', status:'pending'},
+    ],
+    docs:['Устав.pdf'],
+    totalSum:'38 500 000 ₸', contractsCount:1,
+    director:'Касымов Ерболат Серикович',
+  },
+  {
+    id:10, name:'АО «Алматинский Торговый Дом»', bin:'960140001234', status:'closed',
+    city:'Алматы', industry:'Торговля', regDate:'03.02.1996',
+    address:'050057, г. Алматы, пр. Аль-Фараби, 17, БЦ «Нурлы Тау»',
+    bank:'АО «Citibank Kazakhstan»', iban:'KZ291901000034009870', bik:'CITIKZKX',
+    contracts:[
+      {num:'ЛД-2020-0012', date:'10.03.2020', sum:'55 000 000 ₸', status:'closed'},
+    ],
+    docs:['Устав_АО.pdf','Реш_о_реорганизации.pdf'],
+    totalSum:'55 000 000 ₸', contractsCount:1,
+    director:'Петров Василий Игоревич',
+  },
+];
+
+function statusLabel(s){return{active:'Активная',check:'На проверке',closed:'Закрытая'}[s]||s}
+function statusClass(s){return{active:'cst-active',check:'cst-check',closed:'cst-closed'}[s]||''}
+function contractStatusLabel(s){return{active:'Активный',pending:'На согласовании',closed:'Закрыт'}[s]||s}
+function contractStatusStyle(s){
+  if(s==='active') return 'background:#d1fae5;color:#065f46';
+  if(s==='pending') return 'background:#fef3c7;color:#92400e';
+  return 'background:#f1f5f9;color:#64748b';
+}
+
+function renderClients(list){
+  const tbody = document.getElementById('clientsBody');
+  const noRes = document.getElementById('noResults');
+  if(!list.length){tbody.innerHTML='';noRes.style.display='block';return;}
+  noRes.style.display='none';
+  tbody.innerHTML = list.map(c=>`
+    <tr onclick="openClientCard(${c.id})">
+      <td><div class="client-name-cell">${c.name}</div><div class="client-bin">${c.industry}</div></td>
+      <td><span style="font-family:monospace;font-size:12px">${c.bin}</span></td>
+      <td style="color:var(--text-secondary)">${c.city}</td>
+      <td style="color:var(--text-secondary);font-size:12px">${c.industry}</td>
+      <td style="text-align:center;font-weight:600;color:var(--text-primary)">${c.contractsCount}</td>
+      <td style="font-weight:600;color:var(--text-primary)">${c.totalSum}</td>
+      <td><span class="${statusClass(c.status)}">${statusLabel(c.status)}</span></td>
+    </tr>
+  `).join('');
+}
+
+function filterClients(){
+  const name = document.getElementById('searchName').value.toLowerCase();
+  const bin = document.getElementById('searchBin').value.toLowerCase();
+  const status = document.getElementById('filterStatus').value;
+  const filtered = CLIENTS.filter(c=>{
+    return (!name || c.name.toLowerCase().includes(name))
+        && (!bin || c.bin.includes(bin))
+        && (!status || c.status === status);
+  });
+  renderClients(filtered);
+}
+
+function openClientCard(id){
+  const c = CLIENTS.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('ccTitle').textContent = c.name;
+  document.getElementById('ccStatus').innerHTML = `<span class="${statusClass(c.status)}">${statusLabel(c.status)}</span>`;
+  
+  const contractsHtml = c.contracts.map(ct=>`
+    <div class="contract-row">
+      <div>
+        <div class="contract-num">${ct.num}</div>
+        <div class="contract-meta">Заключён: ${ct.date}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="contract-sum">${ct.sum}</div>
+        <div style="margin-top:3px"><span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;${contractStatusStyle(ct.status)}">${contractStatusLabel(ct.status)}</span></div>
+      </div>
+    </div>
+  `).join('');
+
+  const docsHtml = c.docs.map(d=>`
+    <div class="doc-attach">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span style="font-size:12px;color:var(--text-secondary);flex:1">${d}</span>
+      <button class="btn sm" onclick="pro('Скачивание документов')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </button>
+    </div>
+  `).join('');
+
+  document.getElementById('clientCardBody').innerHTML = `
+    <div class="cc-section">
+      <div class="cc-section-title">Основная информация</div>
+      <div class="cc-grid">
+        <div class="cc-field full"><div class="cc-label">Наименование компании</div><div class="cc-value">${c.name}</div></div>
+        <div class="cc-field"><div class="cc-label">БИН</div><div class="cc-value mono">${c.bin}</div></div>
+        <div class="cc-field"><div class="cc-label">Дата регистрации</div><div class="cc-value">${c.regDate}</div></div>
+        <div class="cc-field full"><div class="cc-label">Юридический адрес</div><div class="cc-value">${c.address}</div></div>
+        <div class="cc-field full"><div class="cc-label">Директор</div><div class="cc-value">${c.director}</div></div>
+        <div class="cc-field"><div class="cc-label">Отрасль</div><div class="cc-value">${c.industry}</div></div>
+        <div class="cc-field"><div class="cc-label">Город</div><div class="cc-value">${c.city}</div></div>
+      </div>
+    </div>
+    <div class="cc-section">
+      <div class="cc-section-title">Банковские реквизиты</div>
+      <div class="cc-grid">
+        <div class="cc-field full"><div class="cc-label">Банк</div><div class="cc-value">${c.bank}</div></div>
+        <div class="cc-field full"><div class="cc-label">IBAN</div><div class="cc-value mono">${c.iban}</div></div>
+        <div class="cc-field"><div class="cc-label">БИК</div><div class="cc-value mono">${c.bik}</div></div>
+      </div>
+    </div>
+    <div class="cc-section">
+      <div class="cc-section-title">Договоры лизинга (${c.contractsCount})</div>
+      ${contractsHtml}
+    </div>
+    <div class="cc-section">
+      <div class="cc-section-title">Документы</div>
+      ${docsHtml}
+      <button class="btn ghost" style="margin-top:6px;width:100%;justify-content:center" onclick="pro('Прикрепление документов к карточке клиента')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        + Прикрепить документ
+        <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </button>
+    </div>
+  `;
+  document.getElementById('clientOverlay').classList.add('show');
+}
+
+function closeClientCard(e){
+  if(!e || e.target===document.getElementById('clientOverlay')){
+    document.getElementById('clientOverlay').classList.remove('show');
+  }
+}
+
+
+/* ════════ DASHBOARD CHARTS ════════ */
+let chartsInited = false;
+
+function initDashboard() {
+  if (chartsInited) return;
+  chartsInited = true;
+
+  const fontColor = '#6b7280';
+  const gridColor = '#f1f3f5';
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.font.size = 11;
+
+  // ── 1. Оборот по месяцам (bar) ──
+  new Chart(document.getElementById('chartRevenue'), {
+    type: 'bar',
+    data: {
+      labels: ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'],
+      datasets: [{
+        label: 'Поступления (млн ₸)',
+        data: [312, 287, 395, 421, 0, 0, 0, 0, 0, 0, 0, 0],
+        backgroundColor: (ctx) => ctx.raw > 0 ? '#4f46e5' : '#e5e7eb',
+        borderRadius: 6, borderSkipped: false,
+      },{
+        label: 'План (млн ₸)',
+        data: [300, 300, 380, 400, 420, 440, 450, 460, 480, 490, 500, 520],
+        type: 'line', borderColor: '#059669', borderWidth: 2,
+        pointRadius: 3, pointBackgroundColor: '#059669',
+        fill: false, tension: 0.4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { color: fontColor, boxWidth: 12, padding: 16 } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: fontColor } },
+        y: { grid: { color: gridColor }, ticks: { color: fontColor, callback: v => v + ' м' } }
+      }
+    }
+  });
+
+  // ── 2. Клиенты по статусам (doughnut) ──
+  new Chart(document.getElementById('chartClientStatus'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Активные', 'На проверке', 'Закрытые'],
+      datasets: [{ data: [58, 27, 15], backgroundColor: ['#059669','#f59e0b','#ef4444'], borderWidth: 2, borderColor: '#fff', hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // ── 3. Платежи по статусам (horizontal bar) ──
+  new Chart(document.getElementById('chartPayments'), {
+    type: 'bar',
+    data: {
+      labels: ['Оплачено', 'Текущие', 'Просрочено', 'Ожидает', 'Частичная оплата'],
+      datasets: [{
+        data: [847, 213, 8, 312, 44],
+        backgroundColor: ['#059669','#4f46e5','#ef4444','#94a3b8','#f59e0b'],
+        borderRadius: 6, borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: fontColor } },
+        y: { grid: { display: false }, ticks: { color: fontColor } }
+      }
+    }
+  });
+
+  // ── 4. Внешние проверки (grouped bar) ──
+  new Chart(document.getElementById('chartChecks'), {
+    type: 'bar',
+    data: {
+      labels: ['Январь', 'Февраль', 'Март', 'Апрель'],
+      datasets: [
+        { label: 'КГД МФ РК', data: [42, 38, 51, 44], backgroundColor: '#4f46e5', borderRadius: 4 },
+        { label: 'ГБД ФЛ/ЮЛ', data: [38, 35, 48, 40], backgroundColor: '#0284c7', borderRadius: 4 },
+        { label: 'БКИ', data: [29, 27, 34, 31], backgroundColor: '#7c3aed', borderRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { color: fontColor, boxWidth: 12, padding: 12 } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: fontColor } },
+        y: { grid: { color: gridColor }, ticks: { color: fontColor } }
+      }
+    }
+  });
+
+  // ── 5. Динамика клиентов (line) ──
+  new Chart(document.getElementById('chartGrowth'), {
+    type: 'line',
+    data: {
+      labels: ['Q1 2023','Q2 2023','Q3 2023','Q4 2023','Q1 2024','Q2 2024','Q3 2024','Q4 2024','Q1 2025'],
+      datasets: [
+        {
+          label: 'Новые клиенты', data: [6,8,7,9,10,11,12,14,12],
+          borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,.1)',
+          fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#4f46e5',
+        },
+        {
+          label: 'Новые договоры', data: [8,11,10,13,15,16,18,21,19],
+          borderColor: '#059669', backgroundColor: 'rgba(5,150,105,.08)',
+          fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#059669',
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { color: fontColor, boxWidth: 12, padding: 16 } } },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: fontColor } },
+        y: { grid: { color: gridColor }, ticks: { color: fontColor } }
+      }
+    }
+  });
+
+  // ── 6. Менеджеры ──
+  const managers = [
+    { name: 'Ибрагимов Тимур', initials: 'ИТ', color: '#4f46e5', clients: 24, sum: '1,4 млрд ₸', deals: 31 },
+    { name: 'Сарсенова Айгерим', initials: 'СА', color: '#059669', clients: 21, sum: '1,1 млрд ₸', deals: 28 },
+    { name: 'Дюсенов Марат', initials: 'ДМ', color: '#d97706', clients: 19, sum: '890 млн ₸', deals: 24 },
+    { name: 'Ковалёв Андрей', initials: 'КА', color: '#7c3aed', clients: 18, sum: '520 млн ₸', deals: 22 },
+    { name: 'Нурланова Зарина', initials: 'НЗ', color: '#0284c7', clients: 18, sum: '280 млн ₸', deals: 21 },
+  ];
+  document.getElementById('managerList').innerHTML = managers.map(m => `
+    <div class="mgr-row">
+      <div class="mgr-avatar" style="background:${m.color}">${m.initials}</div>
+      <div style="flex:1">
+        <div class="mgr-name">${m.name}</div>
+        <div class="mgr-meta">${m.clients} клиентов · ${m.deals} договоров</div>
+      </div>
+      <div class="mgr-sum">${m.sum}</div>
+    </div>
+  `).join('');
+}
+
+function showPage(page){
+  // All managed sections
+  const PAGES = ['overview','clients'];
+  const LEASING_IDS = ['page-header-leasing','pane-calc','pane-contract'];
+
+  // Hide/show overview
+  document.getElementById('page-overview').style.display = page==='overview' ? 'block' : 'none';
+  // Hide/show clients
+  document.getElementById('page-clients').style.display = page==='clients' ? 'block' : 'none';
+
+  // Hide/show leasing content (all main children that are not page divs or overlay)
+  Array.from(document.querySelector('.main').children).forEach(el=>{
+    if(el.id === 'page-overview' || el.id === 'page-clients' || el.classList.contains('client-modal-overlay')) return;
+    el.style.display = page==='leasing' ? '' : 'none';
+  });
+
+  // Nav active states
+  ['overview','clients','leasing'].forEach(p=>{
+    const btn = document.getElementById('nav-'+p);
+    if(btn) btn.classList.toggle('active', p===page);
+  });
+
+  if(page === 'clients') renderClients(CLIENTS);
+  if(page === 'overview') { setTimeout(initDashboard, 50); }
+}
+
+/* ════════ LEASING CALCULATOR (по образцу Excel) ════════ */
+
+// Пресеты партий (из Excel-файла)
+const BATCH_PRESETS = {
+  1: { qty: 30, term: 48, deliveryDate: '2026-03-20', firstPayDays: 7 },
+  2: { qty: 40, term: 47, deliveryDate: '2026-04-11', firstPayDays: 16 },
+  3: { qty: 30, term: 45, deliveryDate: '2026-06-18', firstPayDays: 9 },
+};
+
+let currentBatch = 1;
+let scheduleData = [];
+let allBatchData = {};
+
+function switchBatch(n) {
+  currentBatch = n;
+  [1,2,3,0].forEach(i => {
+    const id = i === 0 ? 'tab-cons' : 'tab-p' + i;
+    const el = document.getElementById(id);
+    if (el) el.className = 'tab-pill' + (i === n ? ' on' : '');
+  });
+  if (n > 0 && BATCH_PRESETS[n]) {
+    const p = BATCH_PRESETS[n];
+    document.getElementById('unitQty').value = p.qty;
+    document.getElementById('term').value = p.term;
+    document.getElementById('deliveryDate').value = p.deliveryDate;
+    document.getElementById('qtyLabel').textContent = `Количество единиц (партия ${n})`;
+  } else {
+    document.getElementById('qtyLabel').textContent = 'Количество единиц (суммарно)';
+  }
+  calcAll();
+}
+
+function getParams() {
+  return {
+    unitPrice: parseFloat(document.getElementById('unitPrice').value) || 0,
+    unitQty:   parseInt(document.getElementById('unitQty').value) || 0,
+    fxRate:    parseFloat(document.getElementById('fxRate').value) || 1,
+    rate:      parseFloat(document.getElementById('rate').value) / 100 || 0,
+    advPct:    parseFloat(document.getElementById('advance').value) / 100 || 0,
+    term:      parseInt(document.getElementById('term').value) || 48,
+    vatPct:    parseFloat(document.getElementById('vat').value) / 100 || 0,
+    advDate:   document.getElementById('advanceDate').value,
+    delDate:   document.getElementById('deliveryDate').value,
+    payDay:    parseInt(document.getElementById('payDay').value) || 26,
+  };
+}
+
+function nextPayDate(year, month, day) {
+  // Returns date for given year/month with payDay, capped at 28
+  const d = Math.min(day, 28);
+  return new Date(year, month, d);
+}
+
+function fmtDate(d) {
+  return d.toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+function calcBatch(p) {
+  const totalCost = p.unitPrice * p.unitQty * p.fxRate;
+  const advanceAmt = totalCost * p.advPct;
+  const vatImport = totalCost * p.vatPct;
+  const principal = totalCost - advanceAmt;
+
+  // Аннуитетный платёж (ставка/12)
+  const monthlyRate = p.rate / 12;
+  const annuity = principal * (monthlyRate * Math.pow(1 + monthlyRate, p.term)) / (Math.pow(1 + monthlyRate, p.term) - 1);
+
+  // Первый платёж (строка 0) — аванс
+  const rows = [];
+  const advDateObj = new Date(p.advDate);
+  rows.push({
+    num: 0, date: advDateObj,
+    advPL: advanceAmt, advNDS: vatImport,
+    debt: 0, interest: 0,
+    total: advanceAmt + vatImport,
+    balance: principal,
+    isAdvance: true,
+  });
+
+  // Определяем дату первого лизингового платежа
+  const delDate = new Date(p.delDate);
+  // Первый платёж — в payDay месяца после поставки
+  let firstPayMonth = delDate.getMonth() + 1;
+  let firstPayYear = delDate.getFullYear();
+  if (delDate.getDate() >= p.payDay) { firstPayMonth++; }
+  if (firstPayMonth > 11) { firstPayMonth = 0; firstPayYear++; }
+  const firstPayDate = new Date(firstPayYear, firstPayMonth, p.payDay);
+
+  // Дней от поставки до первого платежа
+  const firstDays = Math.round((firstPayDate - delDate) / (1000*60*60*24));
+
+  let balance = principal;
+  let payDate = firstPayDate;
+
+  for (let i = 1; i <= p.term; i++) {
+    const days = i === 1 ? firstDays : 30;
+    const interest = balance * p.rate * days / 360;
+    const debt = annuity - interest;
+    balance = Math.max(0, balance - debt);
+    rows.push({
+      num: i, date: new Date(payDate),
+      advPL: 0, advNDS: 0,
+      debt, interest,
+      total: debt + interest,
+      balance,
+      isAdvance: false,
+    });
+    // Next month same payDay
+    let nm = payDate.getMonth() + 1;
+    let ny = payDate.getFullYear();
+    if (nm > 11) { nm = 0; ny++; }
+    payDate = new Date(ny, nm, p.payDay);
+  }
+
+  const totalInterest = rows.reduce((s,r) => s + r.interest, 0);
+  const totalAll = rows.reduce((s,r) => s + r.total, 0);
+
+  return { rows, totalCost, advanceAmt, vatImport, principal, annuity, totalInterest, totalAll };
+}
+
+function renderTable(result, title) {
+  document.getElementById('resultTitle').textContent = title;
+  const p = getParams();
+  const tc = result.totalCost;
+
+  document.getElementById('r-total-cost').textContent = fmt(tc) + ' ₸';
+  document.getElementById('r-advance').textContent = fmt(result.advanceAmt) + ' ₸';
+  document.getElementById('r-finance').textContent = fmt(result.principal) + ' ₸';
+  document.getElementById('r-monthly').textContent = fmt(result.annuity) + ' ₸';
+  document.getElementById('r-overpay').textContent = fmt(result.totalInterest) + ' ₸';
+  document.getElementById('r-total').textContent = fmt(result.totalAll) + ' ₸';
+
+  scheduleData = result.rows;
+  const tbody = document.getElementById('schedBody');
+  tbody.innerHTML = result.rows.map(r => `
+    <tr style="${r.isAdvance ? 'background:var(--bg-hover);font-weight:600' : ''}">
+      <td>${r.num}</td>
+      <td class="name">${fmtDate(r.date)}</td>
+      <td>${r.advPL ? fmt(r.advPL) : '—'}</td>
+      <td>${r.advNDS ? fmt(r.advNDS) : '—'}</td>
+      <td>${r.debt ? fmt(r.debt) : '—'}</td>
+      <td>${r.interest ? fmt(r.interest) : '—'}</td>
+      <td class="bold">${fmt(r.total)}</td>
+      <td>${r.isAdvance ? fmt(r.balance) : fmt(r.balance)}</td>
+    </tr>
+  `).join('');
+}
+
+function calcConsolidation() {
+  // Merge all 3 batches by date
+  const merged = {};
+  [1,2,3].forEach(bn => {
+    const p = { ...getParams() };
+    const preset = BATCH_PRESETS[bn];
+    p.unitQty = preset.qty;
+    p.term = preset.term;
+    p.delDate = preset.deliveryDate;
+    const res = calcBatch(p);
+    allBatchData[bn] = res;
+    res.rows.forEach(r => {
+      const key = fmtDate(r.date);
+      if (!merged[key]) merged[key] = { date: r.date, advPL:0, advNDS:0, debt:0, interest:0, total:0 };
+      merged[key].advPL += r.advPL;
+      merged[key].advNDS += r.advNDS;
+      merged[key].debt += r.debt;
+      merged[key].interest += r.interest;
+      merged[key].total += r.total;
+    });
+  });
+
+  const rows = Object.values(merged).sort((a,b) => a.date - b.date).map((r,i) => ({...r, num:i, balance:0, isAdvance: r.advPL > 0}));
+
+  const totalCost = [1,2,3].reduce((s,bn) => s + allBatchData[bn].totalCost, 0);
+  const advanceAmt = [1,2,3].reduce((s,bn) => s + allBatchData[bn].advanceAmt, 0);
+  const vatImport = [1,2,3].reduce((s,bn) => s + allBatchData[bn].vatImport, 0);
+  const principal = totalCost - advanceAmt;
+  const totalInterest = [1,2,3].reduce((s,bn) => s + allBatchData[bn].totalInterest, 0);
+  const totalAll = [1,2,3].reduce((s,bn) => s + allBatchData[bn].totalAll, 0);
+  const annuity = Math.max(...[1,2,3].map(bn => allBatchData[bn].annuity));
+
+  return { rows, totalCost, advanceAmt, vatImport, principal, annuity, totalInterest, totalAll };
+}
+
+function calcAll() {
+  const p = getParams();
+  if (currentBatch === 0) {
+    const result = calcConsolidation();
+    renderTable(result, 'Консолидация — все партии');
+  } else {
+    const preset = BATCH_PRESETS[currentBatch] || {};
+    const bp = { ...p, delDate: preset.deliveryDate || p.delDate };
+    const result = calcBatch(bp);
+    renderTable(result, `Партия ${currentBatch} — График платежей`);
+  }
+}
+
+function exportCSV() {
+  if (!scheduleData.length) { alert('Сначала выполните расчёт'); return; }
+  let csv = '№;Дата;Аванс ПЛ;Аванс НДС;Основной долг;Вознаграждение;Итого;Остаток ОД\n';
+  scheduleData.forEach(r => {
+    csv += `${r.num};${fmtDate(r.date)};${Math.round(r.advPL)};${Math.round(r.advNDS)};${Math.round(r.debt)};${Math.round(r.interest)};${Math.round(r.total)};${Math.round(r.balance)}\n`;
+  });
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'график_лизинга_партии.csv'; a.click();
+}
+
+function exportPDF() {
+  window.print();
+}
+
+// Обратная совместимость
+function calcSchedule() { calcAll(); }
+function exportExcel() { exportCSV(); }
+
+calcAll();
+</script>
+</body>
+</html>
